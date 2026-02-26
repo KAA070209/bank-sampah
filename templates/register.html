@@ -304,6 +304,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
-
+<script>
+setTimeout(() => {
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => {
+        alert.style.opacity = '0';
+        alert.style.transition = '0.5s';
+        setTimeout(() => alert.remove(), 500);
+    });
+}, 4000);
+</script>
 </body>
 </html>
