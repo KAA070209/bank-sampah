@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Nasabah - Bank Sampah</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+:root{
+    --primary:#16a34a;
+    --primary-dark:#14532d;
+    --accent:#22c55e;
+    --light:#f0fdf4;
+    --border:rgba(0,0,0,0.05);
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Poppins', sans-serif;
+}
+
+body{
+    display:flex;
+    min-height:100vh;
+    background:linear-gradient(135deg,#ecfdf5,#d1fae5);
+    color:#1f2937;
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar{
+    width:260px;
+    height:100vh;
+    background:linear-gradient(180deg,#166534,#14532d);
+    padding:30px 20px;
+    color:white;
+    position:fixed;
+    box-shadow:4px 0 30px rgba(0,0,0,0.1);
+}
+
+.sidebar h2{
+    text-align:center;
+    margin-bottom:40px;
+}
+
+.sidebar ul{
+    list-style:none;
+}
+
+.sidebar ul li{
+    margin:12px 0;
+}
+
+.sidebar ul li a{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:12px 15px;
+    border-radius:12px;
+    color:white;
+    text-decoration:none;
+    font-size:14px;
+    transition:0.3s;
+}
+
+.sidebar ul li a:hover{
+    background:rgba(255,255,255,0.15);
+    transform:translateX(6px);
+}
+
+/* ===== MAIN ===== */
+.main{
+    margin-left:260px;
+    padding:40px;
+    width:100%;
+}
+/* ===== PREMIUM BADGE ===== */
+.badge{
+    padding:6px 14px;
+    border-radius:50px;
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:0.5px;
+    display:inline-block;
+}
+
+.badge-high{
+    background:linear-gradient(135deg,#16a34a,#22c55e);
+    color:white;
+    box-shadow:0 4px 12px rgba(34,197,94,0.35);
+}
+
+.badge-low{
+    background:linear-gradient(135deg,#f59e0b,#facc15);
+    color:#78350f;
+    box-shadow:0 4px 12px rgba(245,158,11,0.35);
+}
+
+.badge-organik{
+    background:linear-gradient(135deg,#0ea5e9,#38bdf8);
+    color:white;
+}
+/* ===== TOPBAR ===== */
+.topbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background:white;
+    padding:18px 30px;
+    border-radius:20px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.05);
+    margin-bottom:35px;
+}
+
+.header-left img,
+.header-right img{
+    height:55px;
+}
+
+.header-center{
+    text-align:center;
+    flex:1;
+}
+
+.header-center h1{
+    font-size:20px;
+    font-weight:700;
+    color:#166534;
+}
+
+.header-center p{
+    font-size:13px;
+    color:#6b7280;
+}
+
+.logout{
+    background:linear-gradient(135deg,#16a34a,#22c55e);
+    color:white;
+    padding:8px 18px;
+    border-radius:50px;
+    text-decoration:none;
+    font-size:12px;
+    font-weight:600;
+}
+
+/* ===== CARDS ===== */
+.cards{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+    gap:25px;
+    margin-bottom:30px;
+}
+
+.card{
+    background:white;
+    padding:28px;
+    border-radius:20px;
+    box-shadow:0 15px 35px rgba(0,0,0,0.05);
+    border:1px solid var(--border);
+}
+
+.card h3{
+    font-size:13px;
+    color:#6b7280;
+}
+
+.card h2{
+    margin-top:12px;
+    font-size:26px;
+    font-weight:700;
+    color:var(--primary);
+}
+
+/* ===== TABLE ===== */
+.table-container{
+    background:white;
+    padding:30px;
+    border-radius:20px;
+    box-shadow:0 15px 35px rgba(0,0,0,0.05);
+    margin-top:30px;
+    border:1px solid var(--border);
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+table th{
+    text-align:left;
+    font-size:13px;
+    padding-bottom:15px;
+    color:var(--primary-dark);
+}
+
+table td{
+    padding:15px 0;
+    border-bottom:1px solid #f1f5f9;
+    font-size:14px;
+}
+
+button{
+    padding:10px 20px;
+    border:none;
+    border-radius:30px;
+    background:linear-gradient(135deg,#16a34a,#22c55e);
+    color:white;
+    font-weight:600;
+    cursor:pointer;
+}
+.topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:white;
+    padding:18px 30px;
+    border-radius:20px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.05);
+    margin-bottom:35px;
+}
+
+.header-right{
+    display:flex;
+    align-items:center;
+    gap:18px;
+}
+/* ===== MOBILE BOTTOM NAV ===== */
+.mobile-nav{
+    position:fixed;
+    bottom:0;
+    left:0;
+    width:100%;
+    background:white;
+    box-shadow:0 -5px 20px rgba(0,0,0,0.08);
+    display:none;
+    justify-content:space-around;
+    padding:10px 0;
+    border-top-left-radius:20px;
+    border-top-right-radius:20px;
+    z-index:999;
+}
+
+.mobile-nav a{
+    text-decoration:none;
+    font-size:11px;
+    color:#6b7280;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:4px;
+    font-weight:500;
+    transition:0.3s;
+}
+
+.mobile-nav a span{
+    font-size:20px;
+}
+
+.mobile-nav a.active{
+    color:var(--primary);
+}
+
+.mobile-nav a.active span{
+    transform:scale(1.15);
+}
+
+/* tampil hanya di mobile */
+@media(max-width:768px){
+    .sidebar{
+        display:none;
+    }
+
+    .main{
+        margin-left:0;
+        padding-bottom:90px; /* biar ga ketutup navbar */
+    }
+
+    .mobile-nav{
+        display:flex;
+    }
+}
+/* ============================= */
+/* ===== MOBILE OPTIMIZED ===== */
+/* ============================= */
+@media(max-width:768px){
+
+    body{
+        flex-direction:column;
+    }
+
+    /* MAIN AREA */
+    .main{
+        margin-left:0;
+        padding:20px 15px 100px 15px;
+    }
+
+    /* TOPBAR */
+    .topbar{
+        flex-direction:column;
+        gap:12px;
+        padding:18px;
+        border-radius:18px;
+        text-align:center;
+    }
+    /* ===== MOBILE HEADER WITH LOGO ===== */
+    .header-left img,
+    .header-right img{
+        height:35px; /* kecilkan logo */
+    }
+
+    .topbar{
+        flex-direction:row;
+        justify-content:space-between;
+        align-items:center;
+        padding:15px 18px;
+    }
+
+    .header-center{
+        text-align:center;
+    }
+
+    .header-center h1{
+        font-size:16px;
+    }
+
+    .header-center p{
+        font-size:11px;
+    }
+
+    .header-center h1{
+        font-size:18px;
+    }
+
+    .header-center p{
+        font-size:12px;
+    }
+
+    /* CARDS */
+    .cards{
+        grid-template-columns:1fr;
+        gap:15px;
+    }
+
+    .card{
+        padding:20px;
+        border-radius:18px;
+    }
+
+    .card h2{
+        font-size:22px;
+    }
+
+    /* TABLE RESPONSIVE */
+    .table-container{
+        padding:20px;
+        overflow-x:auto;
+    }
+
+    table{
+        min-width:600px;
+    }
+
+    table th,
+    table td{
+        font-size:12px;
+    }
+
+    /* MOBILE NAV IMPROVEMENT */
+    .mobile-nav{
+        padding:12px 0 20px 0;
+        border-top-left-radius:25px;
+        border-top-right-radius:25px;
+    }
+
+    .mobile-nav a{
+        font-size:10px;
+    }
+
+    .mobile-nav a span{
+        font-size:22px;
+    }
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+    <h2>♻️ Bank Sampah</h2>
+    <ul>
+        <li><a href="#">📊 Dashboard</a></li>
+        <li><a href="{{ url_for('form_setor') }}">♻️ Setor Sampah</a></li>
+        <li><a href="{{ url_for('penarikan') }}">💸 Penarikan</a></li>
+    </ul>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+<!-- HEADER -->
+<div class="topbar">
+    <div class="header-left">
+        <img src="{{ url_for('static', filename='logo-bank.png') }}">
+    </div>
+
+    <div class="header-center">
+        <h1>Dashboard Nasabah</h1>
+        <p>Bank Sampah Sekolah</p>
+    </div>
+
+    <div class="header-right">
+        <img src="{{ url_for('static', filename='logo-sekolah.png') }}">
+        <a href="/logout" class="logout">Logout</a>
+    </div>
+</div>
+
+<!-- CARDS -->
+<div class="cards">
+    <div class="card">
+        <h3>Saldo Saat Ini</h3>
+        <h2>Rp {{ "{:,.0f}".format(nasabah.saldo or 0) }}</h2>
+    </div>
+
+    <div class="card">
+        <h3>Total Setoran</h3>
+        <h2>Rp {{ "{:,.0f}".format(total_setor) }}</h2>
+    </div>
+
+    <div class="card">
+        <h3>Total Penarikan</h3>
+        <h2>Rp {{ "{:,.0f}".format(total_tarik) }}</h2>
+    </div>
+</div>
+
+<!-- GRAFIK -->
+<div class="card">
+    <h3>Grafik Setor Bulanan</h3>
+    <canvas id="chart"></canvas>
+</div>
+
+<!-- RIWAYAT -->
+<div class="table-container">
+    <h3>Riwayat Setor</h3>
+    <table>
+        <thead>
+        <tr>
+            <th>Tanggal</th>
+            <th>Kategori</th>
+            <th>Value</th>
+            <th>Berat</th>
+            <th>Total</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for r in riwayat_setor %}
+        <tr>
+            <td>{{ r.tanggal }}</td>
+            <td>{{ r.nama_kategori }}</td>
+
+            <td>
+                {% if r.value_label == 'High Value' %}
+                    <span class="badge badge-high">HIGH VALUE</span>
+                {% elif r.value_label == 'Low Value' %}
+                    <span class="badge badge-low">LOW VALUE</span>
+                {% else %}
+                    <span class="badge badge-organik">ORGANIK</span>
+                {% endif %}
+            </td>
+
+            <td>{{ r.berat }} Kg</td>
+            <td>Rp {{ r.subtotal }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+</div>
+
+<script>
+new Chart(document.getElementById('chart'), {
+    type:'bar',
+    data:{
+        labels: {{ bulan_labels|safe }},
+        datasets:[{
+            label:'Total Kg',
+            data: {{ bulan_data|safe }},
+            backgroundColor:'#16a34a'
+        }]
+    }
+});
+</script>
+<!-- MOBILE NAV -->
+<div class="mobile-nav">
+    <a href="#" class="active">
+        <span>🏠</span>
+        Dashboard
+    </a>
+
+    <a href="{{ url_for('form_setor') }}">
+        <span>♻️</span>
+        Setor
+    </a>
+
+    <a href="{{ url_for('penarikan') }}">
+        <span>💸</span>
+        Tarik
+    </a>
+
+    <a href="/logout">
+        <span>🚪</span>
+        Logout
+    </a>
+</div>
+</body>
+</html>

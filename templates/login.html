@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login - Bank Sampah Digital</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+    --primary:#16a34a;
+    --primary-dark:#14532d;
+    --accent:#22c55e;
+    --light:#ecfdf5;
+    --gray:#6b7280;
+}
+
+* {
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Poppins', sans-serif;
+}
+
+body {
+    height:100vh;
+    background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Animated background particles */
+.particles {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+}
+
+.particle {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: rgba(34, 197, 94, 0.3);
+    border-radius: 50%;
+    animation: particleFloat 15s linear infinite;
+}
+
+@keyframes particleFloat {
+    0% {
+        transform: translateY(100vh) rotate(0deg);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    90% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-100vh) rotate(720deg);
+        opacity: 0;
+    }
+}
+
+.container {
+    width:100%;
+    max-width:420px;
+    padding:20px;
+    position: relative;
+    z-index: 1;
+}
+
+.card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(15px);
+    border-radius:24px;
+    padding:45px 40px;
+    box-shadow: 0 25px 50px rgba(34, 197, 94, 0.15);
+    border: 1px solid rgba(34, 197, 94, 0.1);
+}
+
+.logo {
+    text-align:center;
+    font-size:24px;
+    font-weight:700;
+    margin-bottom:8px;
+    color: var(--primary-dark);
+}
+
+.logo-img {
+    width: 70px;
+    height: 70px;
+    margin-bottom: 15px;
+}
+
+.subtitle {
+    text-align:center;
+    font-size:14px;
+    margin-bottom:30px;
+    color: var(--gray);
+}
+
+.input-group {
+    margin-bottom:22px;
+}
+
+.input-group label {
+    font-size:13px;
+    font-weight: 600;
+    margin-bottom:8px;
+    display:block;
+    color: var(--primary-dark);
+}
+
+.input-group input {
+    width:100%;
+    padding:14px 18px;
+    border:2px solid #e5e7eb;
+    border-radius:12px;
+    outline:none;
+    background:#fafafa;
+    font-size:14px;
+    transition: all 0.3s ease;
+    color: #1f2937;
+}
+
+.input-group input:focus {
+    border-color: var(--primary);
+    background: white;
+    box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.1);
+}
+
+.input-group input::placeholder {
+    color:#9ca3af;
+}
+
+button {
+    width:100%;
+    padding:15px;
+    border:none;
+    border-radius:12px;
+    background: linear-gradient(135deg, #16a34a, #22c55e);
+    color:white;
+    font-size:15px;
+    font-weight:600;
+    cursor:pointer;
+    transition:all 0.3s ease;
+    margin-top: 10px;
+}
+
+button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(34, 197, 94, 0.4);
+}
+
+button:active {
+    transform: translateY(-1px);
+}
+
+.footer-text {
+    text-align:center;
+    margin-top:25px;
+    font-size:14px;
+    color: var(--gray);
+}
+
+.footer-text a {
+    color: var(--primary);
+    font-weight:600;
+    text-decoration:none;
+    transition: color 0.3s ease;
+}
+
+.footer-text a:hover {
+    color: var(--primary-dark);
+}
+
+/* Flash messages */
+.alert {
+    background: #fee2e2;
+    color: #dc2626;
+    padding: 14px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* Responsive */
+@media(max-width: 480px) {
+    .card {
+        padding: 35px 25px;
+    }
+    
+    .container {
+        padding: 15px;
+    }
+}
+</style>
+</head>
+<body>
+
+<!-- Animated particles -->
+<div class="particles" id="particles"></div>
+
+<div class="container">
+    <div class="card">
+        <div class="logo">
+            <img src="{{ url_for('static', filename='logo-bank.png') }}" alt="Logo" class="logo-img">
+            <img src="{{ url_for('static', filename='logo-sekolah.png') }}" alt="Logo" class="logo-img">
+            <div>Bank Sampah Digital</div>
+        </div>
+        <div class="subtitle">Masuk ke akun nasabah Anda</div>
+
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="alert">
+                {{ messages[0] }}
+            </div>
+        {% endif %}
+        {% endwith %}
+
+        <form method="POST">
+            <div class="input-group">
+                <label>Username</label>
+                <input type="text" name="username" placeholder="Masukkan username" required>
+            </div>
+
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" name="password" placeholder="Masukkan password" required>
+            </div>
+
+            <button type="submit">Login</button>
+        </form>
+
+        <div class="footer-text">
+            Belum punya akun? <a href="/register">Daftar sekarang</a>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const particlesContainer = document.getElementById('particles');
+    const particleCount = 15;
+
+    for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.classList.add('particle');
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.width = (Math.random() * 8 + 4) + 'px';
+        particle.style.height = particle.style.width;
+        particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+        particle.style.animationDelay = (Math.random() * 5) + 's';
+        particlesContainer.appendChild(particle);
+    }
+});
+</script>
+
+</body>
+</html>

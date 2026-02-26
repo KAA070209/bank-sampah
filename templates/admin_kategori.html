@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Kategori Sampah</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}">
+</head>
+<body>
+
+<div class="sidebar">
+    <h2>♻️ Bank Sampah</h2>
+    <ul>
+        <li><a href="/admin_dashboard">📊 Dashboard</a></li>
+        <li><a href="/admin_nasabah">👥 Nasabah</a></li>
+        <li><a href="/admin_transaksi">♻️ Transaksi</a></li>
+        <li><a href="/admin_penarikan">💸 Penarikan</a></li>
+        <li><a href="/admin_kategori">🗂️ Kategori</a></li>
+        <li><a href="/admin_notifikasi">🔔 Notifikasi</a></li>
+        <li><a href="/logout">🚪 Logout</a></li>
+    </ul>
+</div>
+
+<div class="main">
+    <div class="topbar">
+        <h2>Data Kategori</h2>
+    </div>
+
+    <div class="card">
+        <table>
+            <tr>
+                <th>ID</th>
+                <th>Nama Kategori</th>
+                <th>Jenis</th>
+                <th>Harga/Kg</th>
+            </tr>
+
+            {% for k in kategori %}
+            <tr>
+                <td>{{ k.id }}</td>
+                <td>{{ k.nama_kategori }}</td>
+                <td>{{ k.kelompok }}</td>
+                <td>Rp {{ k.harga_per_kg }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</div>
+
+</body>
+</html>
