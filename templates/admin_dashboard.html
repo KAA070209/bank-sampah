@@ -398,7 +398,10 @@ button{
     <h3>Saldo Masuk vs Keluar</h3>
     <canvas id="chartSaldo"></canvas>
 </div>
-
+<div class="card" style="margin-top:20px;">
+    <h3>Komposisi Jenis Sampah</h3>
+    <canvas id="chartJenis"></canvas>
+</div>
 <div class="table-container">
     <h3>Nasabah Pending Approval</h3>
     <table>
@@ -503,54 +506,93 @@ button{
 </form>
   </div>
 </div>
+
 <script>
 new Chart(document.getElementById('chartSetor'), {
     type: 'bar',
     data: {
         labels: {{ bulan_labels|safe }},
         datasets: [{
-            label: 'Total Setor (Kg)',
+            label: 'Total Berat Sampah (Kg)',
             data: {{ bulan_data|safe }},
-            backgroundColor: '#0f9b0f'
+            backgroundColor: '#16a34a',
+            borderRadius: 8,
+            barThickness: 35
         }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { display: true }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Berat (Kg)'
+                }
+            }
+        }
     }
 });
-
 new Chart(document.getElementById('chartSaldo'), {
     type: 'line',
     data: {
         labels: {{ bulan_labels|safe }},
         datasets: [{
-            label: 'Saldo Masuk',
+            label: 'Saldo Masuk (Rp)',
             data: {{ saldo_masuk|safe }},
-            borderColor: '#0f9b0f',
-            fill:false
+            borderColor: '#16a34a',
+            backgroundColor: 'rgba(34,197,94,0.1)',
+            tension: 0.4,
+            fill: true
         },{
-            label: 'Saldo Keluar',
+            label: 'Penarikan (Rp)',
             data: {{ saldo_keluar|safe }},
-            borderColor: '#ff4d4d',
-            fill:false
+            borderColor: '#ef4444',
+            backgroundColor: 'rgba(239,68,68,0.1)',
+            tension: 0.4,
+            fill: true
         }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { position: 'top' }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Nominal (Rp)'
+                }
+            }
+        }
     }
 });
-</script>
-<script>
-function openModal(id){
-    document.getElementById(id).style.display="flex";
-}
-
-function closeModal(id){
-    document.getElementById(id).style.display="none";
-}
-
-window.onclick = function(event){
-    const modals = document.querySelectorAll('.modal');
-    modals.forEach(modal=>{
-        if(event.target === modal){
-            modal.style.display="none";
+new Chart(document.getElementById('chartJenis'), {
+    type: 'doughnut',
+    data: {
+        labels: ['Organik', 'Anorganik Low', 'Anorganik High', 'B3'],
+        datasets: [{
+            data: {{ jenis_data|safe }},
+            backgroundColor: [
+                '#22c55e',
+                '#3b82f6',
+                '#facc15',
+                '#ef4444'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { position: 'bottom' }
         }
-    });
-}
+    }
+});
 </script>
 </body>
 </html>

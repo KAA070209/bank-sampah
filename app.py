@@ -209,6 +209,53 @@ def admin_dashboard():
         ORDER BY p.tanggal DESC
     """)
     penarikan_pending = cursor.fetchall()
+    cursor.execute("""
+        SELECT MONTH(tanggal) as bulan,
+            IFNULL(SUM(total_harga),0) as total
+        FROM transaksi_setor
+        GROUP BY MONTH(tanggal)
+        ORDER BY MONTH(tanggal)
+    """)
+    masuk = cursor.fetchall()
+
+    saldo_masuk = [float(m['total']) for m in masuk]
+    cursor.execute("""
+        SELECT MONTH(tanggal) as bulan,
+            IFNULL(SUM(jumlah),0) as total
+        FROM penarikan
+        WHERE status='approved'
+        GROUP BY MONTH(tanggal)
+        ORDER BY MONTH(tanggal)
+    """)
+    keluar = cursor.fetchall()
+
+    saldo_keluar = [float(k['total']) for k in keluar]
+    cursor.execute("""
+        SELECT ks.kelompok,
+            IFNULL(SUM(ds.berat),0) as total
+        FROM detail_setor ds
+        JOIN kategori_sampah ks ON ds.kategori_id = ks.id
+        GROUP BY ks.kelompok
+    """)
+    jenis = cursor.fetchall()
+
+    # Default 0
+    organik = 0
+    low = 0
+    high = 0
+    b3 = 0
+
+    for j in jenis:
+        if j['kelompok'] == 'organik':
+            organik = float(j['total'])
+        elif j['kelompok'] == 'anorganik_low':
+            low = float(j['total'])
+        elif j['kelompok'] == 'anorganik_high':
+            high = float(j['total'])
+        elif j['kelompok'] == 'b3':
+            b3 = float(j['total'])
+
+    jenis_data = [organik, low, high, b3]
     cursor.close()
     db.close()
 
@@ -221,7 +268,10 @@ def admin_dashboard():
         bulan_labels=bulan_labels,
         penarikan_pending=penarikan_pending,
         bulan_data=bulan_data,
-        pending_users=pending_users
+        pending_users=pending_users,
+        saldo_masuk=saldo_masuk,
+        saldo_keluar=saldo_keluar,
+        jenis_data=jenis_data
     )
 @app.route('/tambah_nasabah', methods=['POST'])
 @login_required
