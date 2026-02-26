@@ -17,7 +17,25 @@ def get_db():
         password=os.getenv("DB_PASSWORD"),
         database=os.getenv("DB_NAME")
     )
+@app.context_processor
+def inject_notif():
+    if 'user_id' in session:
+        db = get_db()
+        cursor = db.cursor(dictionary=True)
 
+        cursor.execute("""
+            SELECT COUNT(*) as total
+            FROM notifikasi
+            WHERE user_id=%s
+        """, (session['user_id'],))
+
+        total_notif = cursor.fetchone()['total']
+        cursor.close()
+        db.close()
+
+        return dict(total_notif=total_notif)
+
+    return dict(total_notif=0)
 # =========================
 # DECORATORS
 # =========================
@@ -617,10 +635,28 @@ def dashboard():
 
     # Ambil data nasabah
     cursor.execute("""
-        SELECT * FROM nasabah 
-        WHERE user_id=%s
+        SELECT n.*, u.nama, u.email
+        FROM nasabah n
+        JOIN users u ON n.user_id = u.id
+        WHERE n.user_id=%s
     """, (session['user_id'],))
+
     nasabah = cursor.fetchone()
+    cursor.execute("""
+        SELECT * FROM notifikasi
+        WHERE user_id = %s
+        ORDER BY created_at DESC
+        LIMIT 20
+    """, (session['user_id'],))
+    notifications = cursor.fetchall()
+
+    # Hitung notif belum dibaca
+    cursor.execute("""
+        SELECT COUNT(*) as total
+        FROM notifikasi
+        WHERE user_id = %s AND is_read = 0
+    """, (session['user_id'],))
+    total_notif = cursor.fetchone()['total']
 
     # Total Setor
     cursor.execute("""
@@ -637,14 +673,6 @@ def dashboard():
         WHERE nasabah_id=%s AND status='approved'
     """, (nasabah['id'],))
     total_tarik = cursor.fetchone()['total_tarik']
-    cursor.execute("""
-        SELECT * FROM notifikasi
-        WHERE user_id=%s
-        ORDER BY created_at DESC
-        LIMIT 5
-    """, (session['user_id'],))
-
-    notifikasi = cursor.fetchall()
     # Riwayat Setor (FIXED)
     cursor.execute("""
         SELECT 
@@ -694,7 +722,13 @@ def dashboard():
     bulan_labels = [nama_bulan[int(g['bulan'])] for g in grafik]
     bulan_data = [float(g['total']) for g in grafik]
     # Ambil kategori untuk form setor
+    cursor.execute("""
+        SELECT COUNT(*) as total
+        FROM notifikasi
+        WHERE user_id=%s
+    """, (session['user_id'],))
 
+    total_notif = cursor.fetchone()['total']
     cursor.close()
     db.close()
 
@@ -704,12 +738,48 @@ def dashboard():
         total_setor=total_setor,
         total_tarik=total_tarik,
         riwayat_setor=riwayat_setor,
-
+        notifications=notifications,
         riwayat_penarikan=riwayat_penarikan,
         bulan_labels=bulan_labels,
         bulan_data=bulan_data,
-        notifikasi=notifikasi
+        total_notif=total_notif
     )
+@app.route('/profil_nasabah', methods=['GET','POST'])
+@login_required
+@role_required('nasabah')
+def profil_nasabah():
+
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT u.id, u.nama, u.email
+        FROM users u
+        WHERE u.id=%s
+    """, (session['user_id'],))
+
+    user = cursor.fetchone()
+
+    if request.method == 'POST':
+        nama = request.form['nama']
+        email = request.form['email']
+
+        cursor.execute("""
+            UPDATE users
+            SET nama=%s, email=%s
+            WHERE id=%s
+        """, (nama, email, session['user_id']))
+
+        db.commit()
+        session['nama'] = nama
+
+        flash("Profil berhasil diperbarui!", "success")
+        return redirect(url_for('profil_nasabah'))
+
+    cursor.close()
+    db.close()
+
+    return render_template('profil_nasabah.html', user=user)
 from decimal import Decimal
 import time
 @app.route('/ajukan_penarikan', methods=['POST'])
