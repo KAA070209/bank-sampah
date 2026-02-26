@@ -724,14 +724,14 @@ button{
         <h2>👤 Profil Saya</h2>
 
         <form method="POST" action="{{ url_for('profil_nasabah') }}">
-            <input type="text" name="nama" value="{{ nasabah.nama }}" required>
-            <input type="email" name="email" value="{{ nasabah.email }}" required>
-            <input type="email" name="email" value="{{ nasabah.alamat }}" required>
-            <input type="email" name="email" value="{{ nasabah.no_hp }}" required>
+            <input type="text" name="nama" value="{{ nasabah.nama }}"  readonly>
+            <input type="email" name="email" value="{{ nasabah.email }}" readonly>
+            <input type="email" name="email" value="{{ nasabah.alamat }}" readonly>
+            <input type="email" name="email" value="{{ nasabah.no_hp }}" readonly>
 
             <div class="modal-buttons">
-                <button type="button" class="btn-cancel" onclick="closeProfileModal()">Batal</button>
-                <button type="submit" class="btn-save">Simpan</button>
+                <button type="button" class="btn-cancel" onclick="closeProfileModal()">Close</button>
+
             </div>
         </form>
     </div>
