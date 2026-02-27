@@ -1,10 +1,17 @@
-from flask import Flask, render_template, request, redirect, session, url_for, flash
+from flask import Flask, render_template, request, redirect, session, url_for, flash, jsonify
 import mysql.connector
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 from decimal import Decimal
 import uuid
 import os
+from inference_sdk import InferenceHTTPClient
+import tempfile
+from flask import request, jsonify
+import os
+from roboflow import Roboflow
+from flask import Response
+import base64
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "bank_sampah_secret_key")  # Ganti dengan key yang lebih aman di produksi
@@ -17,6 +24,31 @@ def get_db():
         password=os.getenv("DB_PASSWORD"),
         database=os.getenv("DB_NAME")
     )
+
+@app.route('/test_ai')
+def test_ai():
+    try:
+        image_path = os.path.join(os.getcwd(), "test.jpg")
+
+        result = client.run_workflow(
+            workspace_name="azkas-workspace-iffj2",
+            workflow_id="general-segmentation-api",
+            images={"image": image_path},
+            parameters={
+                "classes": ["BOTOL","PLASTIK","KERTAS","KARDUS","DAUN","KALENG","BATERAI"]
+            },
+            use_cache=False
+        )
+
+        base64_image = result[0]["annotated_image"]
+
+        image_bytes = base64.b64decode(base64_image)
+
+        return Response(image_bytes, mimetype='image/jpeg')
+
+    except Exception as e:
+        return f"Error: {str(e)}"
+    
 @app.context_processor
 def inject_notif():
     if 'user_id' in session:
@@ -36,6 +68,122 @@ def inject_notif():
         return dict(total_notif=total_notif)
 
     return dict(total_notif=0)
+# =========================
+# DECORATORS
+# =========================
+def login_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated
+
+def role_required(role):
+    def wrapper(f):
+        @wraps(f)
+        def decorated(*args, **kwargs):
+            if session.get('role') != role:
+                return "Unauthorized", 403
+            return f(*args, **kwargs)
+        return decorated
+    return wrapper
+@app.after_request
+def add_header(response):
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
+
+client = InferenceHTTPClient(
+    api_url="https://serverless.roboflow.com",
+    api_key="hibJRe1cZQh683mRSjWP"
+)
+CLASS_MAPPING = {
+    "BOTOL": "Botol Plastik",
+    "PLASTIK": "Plastik",
+    "KERTAS": "Kertas",
+    "KARDUS": "Kardus",
+    "DAUN": "Organik",
+    "KALENG": "Kaleng",
+    "BATERAI": "B3"
+}
+
+@app.route('/detect_ajax', methods=['POST'])
+def detect_ajax():
+    try:
+        file = request.files.get("file")
+        if not file:
+            return jsonify({"success": False, "message": "No file uploaded"})
+
+        # simpan sementara
+        temp_path = os.path.join("static", "temp.jpg")
+        file.save(temp_path)
+
+        # ==============================
+        # 🔥 ROBOFLOW INFERENCE (direct)
+        # ==============================
+        result = client.infer(
+            temp_path,
+            model_id="sampah-ufpof-cgmp3/4",
+        )
+        print("RAW RESULT:", result)
+
+        # ambil predictions
+        predictions = result.get("predictions", [])
+
+        if not predictions:
+            return jsonify({"success": False, "message": "Tidak ada objek terdeteksi"})
+
+        # filter confidence > 0.30
+        valid = [
+            p for p in predictions
+            if p.get("confidence", 0) > 0.30
+        ]
+
+        if not valid:
+            return jsonify({"success": False, "message": "Confidence terlalu rendah"})
+
+        best = max(valid, key=lambda x: x.get("confidence", 0))
+        detected_class = best.get("class")
+        confidence = best.get("confidence", 0)
+
+        if not detected_class:
+            return jsonify({"success": False})
+
+        # ===============================
+        # 🔥 QUERY DATABASE (NO HARDCODE)
+        # ===============================
+        db = get_db()
+        cursor = db.cursor(dictionary=True)
+
+        cursor.execute("""
+            SELECT id, nama_kategori, harga_per_kg, kelompok
+            FROM kategori_sampah
+            WHERE UPPER(nama_ai) = %s
+        """, (detected_class.upper(),))
+
+        kategori = cursor.fetchone()
+
+        cursor.close()
+        db.close()
+
+        if not kategori:
+            return jsonify({"success": False})
+
+        return jsonify({
+            "success": True,
+            "kategori_id": kategori["id"],
+            "nama_kategori": kategori["nama_kategori"],
+            "harga_per_kg": float(kategori["harga_per_kg"]),
+            "kelompok": kategori["kelompok"],
+            "confidence": round(confidence, 2),
+            "detected_class": detected_class
+        })
+
+    except Exception as e:
+        print("ERROR:", str(e))
+        return jsonify({"success": False, "error": str(e)})
 # =========================
 # DECORATORS
 # =========================
@@ -906,6 +1054,30 @@ def setor_sampah():
 
     kategori_id = request.form['kategori_id']
     berat = Decimal(request.form['berat'])
+    ai_confidence = request.form.get("ai_confidence")
+
+    foto = request.files.get("foto")
+
+    if not foto or foto.filename == '':
+        flash("Foto wajib diupload!", "danger")
+        return redirect(url_for('form_setor'))
+
+    # Validasi ekstensi
+    allowed_ext = ['jpg','jpeg','png']
+    ext = foto.filename.split('.')[-1].lower()
+
+    if ext not in allowed_ext:
+        flash("Format harus JPG/PNG!", "danger")
+        return redirect(url_for('form_setor'))
+
+    upload_folder = os.path.join('static', 'uploads')
+    os.makedirs(upload_folder, exist_ok=True)
+
+    filename = f"{uuid.uuid4().hex}.{ext}"
+    filepath = os.path.join(upload_folder, filename)
+    foto.save(filepath)
+
+    foto_db_path = f"uploads/{filename}"
 
     db = get_db()
     cursor = db.cursor(dictionary=True)
@@ -918,26 +1090,26 @@ def setor_sampah():
 
     harga = Decimal(kategori['harga_per_kg'])
     subtotal = berat * harga
+    kode = "TRX" + uuid.uuid4().hex[:10].upper()
 
     try:
-        # Insert transaksi_setor (petugas_id = NULL)
-        # Generate kode unik
-        kode = "TRX" + uuid.uuid4().hex[:10].upper()
-
         cursor.execute("""
             INSERT INTO transaksi_setor 
-            (kode_transaksi, nasabah_id, petugas_id, total_berat, total_harga)
-            VALUES (%s,%s,%s,%s,%s)
+            (kode_transaksi, nasabah_id, petugas_id, 
+             total_berat, total_harga, foto, ai_confidence)
+            VALUES (%s,%s,%s,%s,%s,%s,%s)
         """, (
             kode,
             nasabah['id'],
             None,
             berat,
-            subtotal
+            subtotal,
+            foto_db_path,
+            ai_confidence
         ))
+
         transaksi_id = cursor.lastrowid
 
-        # Insert detail_setor (WAJIB isi harga juga!)
         cursor.execute("""
             INSERT INTO detail_setor
             (transaksi_id, kategori_id, berat, harga, subtotal)
@@ -950,7 +1122,6 @@ def setor_sampah():
             subtotal
         ))
 
-        # Update saldo
         cursor.execute("""
             UPDATE nasabah 
             SET saldo = saldo + %s,

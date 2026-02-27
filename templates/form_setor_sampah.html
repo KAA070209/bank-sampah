@@ -639,6 +639,12 @@ body{
     from{transform:translateY(15px);opacity:0;}
     to{transform:translateY(0);opacity:1;}
 }
+.locked-select {
+    pointer-events: none;
+    background: #f0fdf4 !important;
+    border: 2px solid #16a34a !important;
+    font-weight: 600;
+}
 </style>
 </head>
 <body>
@@ -718,10 +724,18 @@ body{
     <form action="{{ url_for('setor_sampah') }}" 
       method="POST" 
       enctype="multipart/form-data">
+        <div class="form-group">
+            <label>Upload Foto Sampah (AI Detection)</label>
+            <input type="file" name="foto" id="fotoInput" accept="image/*" required>
+            <small style="color:#6b7280;">Upload foto untuk deteksi otomatis kategori</small>
 
+            <!-- TAMBAHKAN INI -->
+            <img id="previewImg"
+                style="margin-top:10px; max-width:220px; display:none; border-radius:12px;">
+        </div>
         <div class="form-group">
             <label>Kategori Sampah</label>
-            <select name="kategori_id" required>
+                <select name="kategori_id" id="kategoriSelect" required>
                 <option value="">-- Pilih Kategori --</option>
                 {% for k in kategori %}
                 <option value="{{ k.id }}">
@@ -737,6 +751,7 @@ body{
             <label>Berat (Kg)</label>
             <input type="number" name="berat" step="0.01" min="0.1" placeholder="Masukkan berat sampah..." required>
         </div>
+
         <button type="submit" class="btn-primary">
             <i class="bi bi-check-circle"></i> Simpan Setoran
         </button>
@@ -859,36 +874,47 @@ function closeNotifModal(){
 }
 </script>
 <script>
-document.getElementById("fotoInput").addEventListener("change", async function(){
-
+document.getElementById("fotoInput").addEventListener("change", function(){
     const file = this.files[0];
     if(!file) return;
 
+    const preview = document.getElementById("previewImg");
+    preview.src = URL.createObjectURL(file);
+    preview.style.display = "block";
+
     const formData = new FormData();
-    formData.append("foto", file);
+    formData.append("file", file);
 
-    try{
-        const res = await fetch("/detect_ajax", {
-            method: "POST",
-            body: formData
-        });
+    fetch("/detect_ajax", {
+        method: "POST",
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
 
-        const data = await res.json();
+        if(data.success){
+            const select = document.getElementById("kategoriSelect");
 
-        console.log("AI RESULT:", data);
-
-        if(data.success && data.kategori_id){
-            const select = document.querySelector("select[name='kategori_id']");
             select.value = data.kategori_id;
+            select.classList.add("locked-select");
 
-            // 🔥 efek visual
-            select.style.borderColor = "#22c55e";
-            select.style.boxShadow = "0 0 0 4px rgba(34,197,94,0.15)";
+            // tambahkan hidden input jika belum ada
+            let hidden = document.getElementById("aiConfidence");
+
+            if(!hidden){
+                hidden = document.createElement("input");
+                hidden.type = "hidden";
+                hidden.name = "ai_confidence";
+                hidden.id = "aiConfidence";
+                document.querySelector("form").appendChild(hidden);
+            }
+
+            hidden.value = data.confidence;
+
+        } else {
+            alert("AI tidak yakin. Silakan pilih manual.");
         }
-
-    }catch(err){
-        console.error("Detect error:", err);
-    }
+    });
 });
 </script>
 </body>

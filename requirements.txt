@@ -2,3 +2,5 @@ Flask==3.0.2
 mysql-connector-python==8.3.0
 Werkzeug==3.0.1
 python-dotenv==1.0.1
+inference-sdk==0.9.17
+roboflow==1.1.48
