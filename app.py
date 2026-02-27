@@ -866,10 +866,13 @@ def penarikan():
     db = get_db()
     cursor = db.cursor(dictionary=True)
 
-    cursor.execute(
-        "SELECT * FROM nasabah WHERE user_id=%s",
-        (session['user_id'],)
-    )
+    cursor.execute("""
+        SELECT n.*, u.nama, u.email
+        FROM nasabah n
+        JOIN users u ON n.user_id = u.id
+        WHERE n.user_id=%s
+    """, (session['user_id'],))
+
     nasabah = cursor.fetchone()
 
     cursor.close()
@@ -958,11 +961,18 @@ def form_setor():
 
     cursor.execute("SELECT * FROM kategori_sampah ORDER BY nama_kategori ASC")
     kategori = cursor.fetchall()
+    cursor.execute("""
+        SELECT n.*, u.nama, u.email
+        FROM nasabah n
+        JOIN users u ON n.user_id = u.id
+        WHERE n.user_id=%s
+    """, (session['user_id'],))
 
+    nasabah = cursor.fetchone()
     cursor.close()
     db.close()
 
-    return render_template("form_setor_sampah.html", kategori=kategori)
+    return render_template("form_setor_sampah.html", kategori=kategori, nasabah=nasabah)
 # =========================
 # RUN APP
 # =========================

@@ -443,6 +443,212 @@ body{
         font-size:22px;
     }
 }
+
+/* Default: sembunyikan */
+.logout-desktop{
+    display:none !important;
+}
+
+/* Desktop only (>768px) */
+@media (min-width: 769px){
+    .logout-desktop{
+        display:block !important;
+        color:#dc2626;
+        font-weight:600;
+    }
+
+    .logout-desktop:hover{
+        background:#fee2e2;
+        color:#b91c1c;
+    }
+}
+/* ===== PREMIUM PROFILE DROPDOWN ===== */
+
+.profile-dropdown{
+    position:relative;
+}
+
+.profile-trigger{
+    background:linear-gradient(135deg,#16a34a,#22c55e);
+    color:white;
+    padding:8px 18px;
+    border-radius:50px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    transition:0.3s;
+    box-shadow:0 8px 20px rgba(22,163,74,0.35);
+}
+
+.profile-trigger:hover{
+    transform:translateY(-2px);
+    box-shadow:0 12px 25px rgba(22,163,74,0.45);
+}
+
+/* Avatar */
+.profile-avatar{
+    width:28px;
+    height:28px;
+    border-radius:50%;
+    background:white;
+    color:#16a34a;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:700;
+    font-size:12px;
+}
+
+/* Notification Badge Pulse */
+.notif-badge{
+    background:#ef4444;
+    color:white;
+    font-size:10px;
+    padding:3px 7px;
+    border-radius:50px;
+    animation:pulse 1.5s infinite;
+}
+
+@keyframes pulse{
+    0%{box-shadow:0 0 0 0 rgba(239,68,68,0.6);}
+    70%{box-shadow:0 0 0 8px rgba(239,68,68,0);}
+    100%{box-shadow:0 0 0 0 rgba(239,68,68,0);}
+}
+
+/* Glass Dropdown */
+.dropdown-menu{
+    position:absolute;
+    right:0;
+    top:120%;
+    width:230px;
+    backdrop-filter:blur(20px);
+    background:rgba(255,255,255,0.85);
+    border-radius:20px;
+    box-shadow:0 20px 40px rgba(0,0,0,0.15);
+    padding:12px 0;
+    opacity:0;
+    transform:translateY(10px);
+    pointer-events:none;
+    transition:all 0.3s ease;
+}
+
+/* Active State */
+.dropdown-menu.show{
+    opacity:1;
+    transform:translateY(0);
+    pointer-events:auto;
+}
+
+.dropdown-menu a{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:12px 18px;
+    text-decoration:none;
+    color:#374151;
+    font-size:14px;
+    transition:0.25s;
+}
+
+.dropdown-menu a:hover{
+    background:#f0fdf4;
+    padding-left:22px;
+}
+
+.dropdown-menu hr{
+    border:none;
+    border-top:1px solid rgba(0,0,0,0.07);
+    margin:8px 0;
+}
+
+.logout-item{
+    color:#dc2626;
+    font-weight:600;
+}
+
+.notif-count{
+    background:#16a34a;
+    color:white;
+    font-size:10px;
+    padding:3px 8px;
+    border-radius:50px;
+}
+/* ===== PROFILE MODAL ===== */
+.modal-overlay{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.4);
+    backdrop-filter:blur(6px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    opacity:0;
+    pointer-events:none;
+    transition:0.3s;
+    z-index:2000;
+}
+
+.modal-overlay.active{
+    opacity:1;
+    pointer-events:auto;
+}
+
+.modal-box{
+    background:white;
+    width:380px;
+    padding:30px;
+    border-radius:20px;
+    box-shadow:0 20px 50px rgba(0,0,0,0.2);
+    animation:fadeUp 0.3s ease;
+}
+
+.modal-box h2{
+    margin-bottom:20px;
+    color:#166534;
+}
+
+.modal-box input{
+    width:100%;
+    padding:12px;
+    margin-bottom:15px;
+    border-radius:12px;
+    border:1px solid #e5e7eb;
+}
+
+.modal-buttons{
+    display:flex;
+    justify-content:flex-end;
+    gap:10px;
+}
+
+.btn-cancel{
+    background:#e5e7eb;
+    color:#374151;
+    border:none;
+    padding:8px 15px;
+    border-radius:10px;
+    cursor:pointer;
+}
+
+.btn-save{
+    background:linear-gradient(135deg,#16a34a,#22c55e);
+    color:white;
+    border:none;
+    padding:8px 15px;
+    border-radius:10px;
+    cursor:pointer;
+}
+
+@keyframes fadeUp{
+    from{transform:translateY(15px);opacity:0;}
+    to{transform:translateY(0);opacity:1;}
+}
 </style>
 </head>
 <body>
@@ -471,9 +677,37 @@ body{
     </div>
 
     <div class="header-right">
-        <img src="{{ url_for('static', filename='logo-sekolah.png') }}">
-        <a href="{{ url_for('logout') }}" class="logout">Logout</a>
+
+    <img src="{{ url_for('static', filename='logo-sekolah.png') }}">
+
+    <div class="profile-dropdown">
+        <div class="profile-trigger" onclick="toggleDropdown()">
+            <div class="profile-avatar">
+                {{ nasabah.nama[:1]|upper }}
+            </div>
+            {% if total_notif > 0 %}
+            <span class="notif-badge">{{ total_notif }}</span>
+            {% endif %}
+        </div>
+
+        <div class="dropdown-menu" id="dropdownMenu">
+        <a href="#" onclick="openNotifModal()">
+            🔔 Notifikasi
+            <span class="notif-count">{{ total_notif }}</span>
+        </a>
+
+        <a href="#" onclick="openProfileModal()">
+            👤 Profil Saya
+        </a>
+
+            <!-- Logout hanya desktop -->
+            <a href="/logout" class="logout-desktop" onclick="return confirmLogout()">
+                🚪 Logout
+            </a>
+        </div>
     </div>
+
+</div>
 </div>
 <!-- FLASH MESSAGE -->
 {% with messages = get_flashed_messages(with_categories=true) %}
@@ -522,6 +756,49 @@ body{
 </div>
 
 </div>
+<div class="modal-overlay" id="profileModal">
+    <div class="modal-box">
+        <h2>👤 Profil Saya</h2>
+
+        <form method="POST" action="{{ url_for('profil_nasabah') }}">
+            <input type="text" name="nama" value="{{ nasabah.nama }}"  readonly>
+            <input type="email" name="email" value="{{ nasabah.email }}" readonly>
+            <input type="email" name="email" value="{{ nasabah.alamat }}" readonly>
+            <input type="email" name="email" value="{{ nasabah.no_hp }}" readonly>
+
+            <div class="modal-buttons">
+                <button type="button" class="btn-cancel" onclick="closeProfileModal()">Close</button>
+
+            </div>
+        </form>
+    </div>
+</div>
+<!-- NOTIFICATION MODAL -->
+<div class="modal-overlay" id="notifModal">
+    <div class="modal-box">
+        <h2>🔔 Notifikasi</h2>
+
+        <div style="max-height:250px; overflow-y:auto; margin-bottom:15px;">
+
+            {% if notifications %}
+                {% for n in notifications %}
+                    <div style="padding:10px 0; border-bottom:1px solid #f1f5f9;">
+                        <strong>{{ n.judul }}</strong><br>
+                        <small style="color:#6b7280;">{{ n.pesan }}</small>
+                        <small style="color:#6b7280;">{{ n.created_at }}</small>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p style="color:#6b7280;">Belum ada notifikasi.</p>
+            {% endif %}
+
+        </div>
+
+        <div class="modal-buttons">
+            <button type="button" class="btn-cancel" onclick="closeNotifModal()">Tutup</button>
+        </div>
+    </div>
+</div>
 <script>
 setTimeout(() => {
     const alerts = document.querySelectorAll('.alert');
@@ -538,12 +815,12 @@ setTimeout(() => {
         Dashboard
     </a>
 
-    <a href="{{ url_for('form_setor') }}" class="active">
+    <a href="{{ url_for('form_setor') }}" >
         <span>♻️</span>
         Setor
     </a>
 
-    <a href="{{ url_for('penarikan') }}">
+    <a href="{{ url_for('penarikan') }}"class="active">
         <span>💸</span>
         Tarik
     </a>
@@ -553,5 +830,44 @@ setTimeout(() => {
         Logout
     </a>
 </div>
+<script>
+function toggleDropdown() {
+    const menu = document.getElementById("dropdownMenu");
+    menu.classList.toggle("show");
+}
+
+document.addEventListener("click", function(e) {
+    const dropdown = document.querySelector(".profile-dropdown");
+    const menu = document.getElementById("dropdownMenu");
+
+    if (!dropdown.contains(e.target)) {
+        menu.classList.remove("show");
+    }
+});
+</script>
+<script>
+function confirmLogout(){
+    return confirm("Apakah Anda yakin ingin logout?");
+}
+</script>
+<script>
+function openProfileModal(){
+    document.getElementById("profileModal").classList.add("active");
+}
+
+function closeProfileModal(){
+    document.getElementById("profileModal").classList.remove("active");
+}
+</script>
+<script>
+function openNotifModal(){
+    document.getElementById("notifModal").classList.add("active");
+    document.getElementById("dropdownMenu").classList.remove("show");
+}
+
+function closeNotifModal(){
+    document.getElementById("notifModal").classList.remove("active");
+}
+</script>
 </body>
 </html>
