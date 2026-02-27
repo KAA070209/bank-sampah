@@ -56,12 +56,22 @@ def role_required(role):
             return f(*args, **kwargs)
         return decorated
     return wrapper
-
+@app.after_request
+def add_header(response):
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
 # =========================
 # HOME
 # =========================
 @app.route('/')
 def home():
+    if 'user_id' in session:
+        if session.get('role') == 'admin':
+            return redirect(url_for('admin_dashboard'))
+        return redirect(url_for('dashboard'))
+
     db = get_db()
     cursor = db.cursor(dictionary=True)
 
@@ -81,6 +91,10 @@ def home():
 # =========================
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+
+    # Jika sudah login, tidak boleh akses register
+    if 'user_id' in session:
+        return redirect(url_for('dashboard'))
 
     if request.method == 'POST':
         nama = request.form['nama']
@@ -129,6 +143,12 @@ def register():
 # =========================
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+
+    # Jika sudah login, redirect sesuai role
+    if 'user_id' in session:
+        if session.get('role') == 'admin':
+            return redirect(url_for('admin_dashboard'))
+        return redirect(url_for('dashboard'))
 
     if request.method == 'POST':
         username = request.form['username']
