@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 26 Feb 2026 pada 15.51
+-- Waktu pembuatan: 27 Feb 2026 pada 13.40
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.0.30
 
@@ -42,7 +42,8 @@ CREATE TABLE `detail_setor` (
 
 INSERT INTO `detail_setor` (`id`, `transaksi_id`, `kategori_id`, `berat`, `harga`, `subtotal`) VALUES
 (3, 4, 8, 1.00, 8000.00, 8000.00),
-(4, 6, 9, 2.00, 45000.00, 90000.00);
+(4, 6, 9, 2.00, 45000.00, 90000.00),
+(5, 7, 2, 1.00, 300.00, 300.00);
 
 -- --------------------------------------------------------
 
@@ -53,6 +54,7 @@ INSERT INTO `detail_setor` (`id`, `transaksi_id`, `kategori_id`, `berat`, `harga
 CREATE TABLE `kategori_sampah` (
   `id` int(11) NOT NULL,
   `nama_kategori` varchar(100) NOT NULL,
+  `nama_ai` varchar(50) DEFAULT NULL,
   `kelompok` enum('organik','anorganik_low','anorganik_high','b3') NOT NULL,
   `value_level` enum('low','high','-') DEFAULT '-',
   `harga_per_kg` decimal(12,2) NOT NULL,
@@ -65,20 +67,20 @@ CREATE TABLE `kategori_sampah` (
 -- Dumping data untuk tabel `kategori_sampah`
 --
 
-INSERT INTO `kategori_sampah` (`id`, `nama_kategori`, `kelompok`, `value_level`, `harga_per_kg`, `deskripsi`, `created_at`, `updated_at`) VALUES
-(1, 'Sisa Makanan', 'organik', '-', 500.00, 'Sisa makanan rumah tangga untuk kompos', '2026-02-26 10:25:56', '2026-02-26 10:25:56'),
-(2, 'Daun Kering', 'organik', '-', 300.00, 'Daun dan sampah kebun', '2026-02-26 10:25:56', '2026-02-26 10:25:56'),
-(3, 'Sayur Busuk', 'organik', '-', 400.00, 'Sayuran tidak layak konsumsi', '2026-02-26 10:25:56', '2026-02-26 10:25:56'),
-(4, 'Plastik Kresek', 'anorganik_low', 'low', 1500.00, 'Plastik tipis campuran', '2026-02-26 10:25:56', '2026-02-26 11:05:08'),
-(5, 'Plastik Campur', 'anorganik_low', 'low', 2000.00, 'Plastik berbagai jenis tidak dipilah', '2026-02-26 10:25:56', '2026-02-26 11:05:08'),
-(6, 'Styrofoam', 'anorganik_low', 'low', 1000.00, 'Kemasan styrofoam', '2026-02-26 10:25:56', '2026-02-26 11:05:08'),
-(7, 'Botol PET Bening', 'anorganik_high', 'high', 4500.00, 'Botol plastik bening tanpa label', '2026-02-26 10:25:56', '2026-02-26 11:05:08'),
-(8, 'Kaleng Aluminium', 'anorganik_high', 'high', 8000.00, 'Kaleng minuman aluminium', '2026-02-26 10:25:56', '2026-02-26 11:05:08'),
-(9, 'Tembaga', 'anorganik_high', 'high', 45000.00, 'Logam tembaga kabel', '2026-02-26 10:25:56', '2026-02-26 11:05:08'),
-(10, 'Kardus', 'anorganik_high', 'high', 2500.00, 'Kardus bersih dan kering', '2026-02-26 10:25:56', '2026-02-26 11:05:08'),
-(11, 'Aki Bekas', 'b3', '-', 10000.00, 'Aki kendaraan bekas', '2026-02-26 10:25:56', '2026-02-26 10:25:56'),
-(12, 'Baterai Bekas', 'b3', '-', 5000.00, 'Baterai rumah tangga', '2026-02-26 10:25:56', '2026-02-26 10:25:56'),
-(13, 'Lampu Neon', 'b3', '-', 3000.00, 'Lampu mengandung merkuri', '2026-02-26 10:25:56', '2026-02-26 10:25:56');
+INSERT INTO `kategori_sampah` (`id`, `nama_kategori`, `nama_ai`, `kelompok`, `value_level`, `harga_per_kg`, `deskripsi`, `created_at`, `updated_at`) VALUES
+(1, 'Sisa Makanan', NULL, 'organik', '-', 500.00, 'Sisa makanan rumah tangga untuk kompos', '2026-02-26 10:25:56', '2026-02-26 10:25:56'),
+(2, 'Daun Kering', 'DAUN', 'organik', '-', 300.00, 'Daun dan sampah kebun', '2026-02-26 10:25:56', '2026-02-27 08:32:13'),
+(3, 'Sayur Busuk', NULL, 'organik', '-', 400.00, 'Sayuran tidak layak konsumsi', '2026-02-26 10:25:56', '2026-02-26 10:25:56'),
+(4, 'Plastik Kresek', 'PLASTIK', 'anorganik_low', 'low', 1500.00, 'Plastik tipis campuran', '2026-02-26 10:25:56', '2026-02-27 08:32:13'),
+(5, 'Plastik Campur', NULL, 'anorganik_low', 'low', 2000.00, 'Plastik berbagai jenis tidak dipilah', '2026-02-26 10:25:56', '2026-02-26 11:05:08'),
+(6, 'Styrofoam', NULL, 'anorganik_low', 'low', 1000.00, 'Kemasan styrofoam', '2026-02-26 10:25:56', '2026-02-26 11:05:08'),
+(7, 'Botol PET Bening', 'BOTOL', 'anorganik_high', 'high', 4500.00, 'Botol plastik bening tanpa label', '2026-02-26 10:25:56', '2026-02-27 08:32:11'),
+(8, 'Kaleng Aluminium', 'KALENG', 'anorganik_high', 'high', 8000.00, 'Kaleng minuman aluminium', '2026-02-26 10:25:56', '2026-02-27 08:32:12'),
+(9, 'Tembaga', NULL, 'anorganik_high', 'high', 45000.00, 'Logam tembaga kabel', '2026-02-26 10:25:56', '2026-02-26 11:05:08'),
+(10, 'Kardus', 'KARDUS', 'anorganik_high', 'high', 2500.00, 'Kardus bersih dan kering', '2026-02-26 10:25:56', '2026-02-27 08:32:12'),
+(11, 'Aki Bekas', NULL, 'b3', '-', 10000.00, 'Aki kendaraan bekas', '2026-02-26 10:25:56', '2026-02-26 10:25:56'),
+(12, 'Baterai Bekas', 'BATERAI', 'b3', '-', 5000.00, 'Baterai rumah tangga', '2026-02-26 10:25:56', '2026-02-27 08:32:13'),
+(13, 'Lampu Neon', NULL, 'b3', '-', 3000.00, 'Lampu mengandung merkuri', '2026-02-26 10:25:56', '2026-02-26 10:25:56');
 
 -- --------------------------------------------------------
 
@@ -126,7 +128,7 @@ CREATE TABLE `nasabah` (
 --
 
 INSERT INTO `nasabah` (`id`, `user_id`, `kode_nasabah`, `alamat`, `no_hp`, `saldo`, `total_berat_terkumpul`) VALUES
-(1, 2, 'NSB0002', 'Jl.pangauban', '081285554702', 90000.00, 16.00);
+(1, 2, 'NSB0002', 'Jl.pangauban', '081285554702', 90300.00, 17.00);
 
 -- --------------------------------------------------------
 
@@ -190,16 +192,19 @@ CREATE TABLE `transaksi_setor` (
   `tanggal` datetime DEFAULT current_timestamp(),
   `total_berat` decimal(14,2) NOT NULL,
   `total_harga` decimal(14,2) NOT NULL,
-  `status` enum('selesai','dibatalkan') DEFAULT 'selesai'
+  `status` enum('selesai','dibatalkan') DEFAULT 'selesai',
+  `foto` varchar(255) DEFAULT NULL,
+  `ai_confidence` float DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data untuk tabel `transaksi_setor`
 --
 
-INSERT INTO `transaksi_setor` (`id`, `kode_transaksi`, `nasabah_id`, `petugas_id`, `tanggal`, `total_berat`, `total_harga`, `status`) VALUES
-(4, 'TRX1100', 1, NULL, '2026-02-26 17:53:32', 1.00, 8000.00, 'selesai'),
-(6, 'TRX59D0444D59', 1, NULL, '2026-02-26 21:25:44', 2.00, 90000.00, 'selesai');
+INSERT INTO `transaksi_setor` (`id`, `kode_transaksi`, `nasabah_id`, `petugas_id`, `tanggal`, `total_berat`, `total_harga`, `status`, `foto`, `ai_confidence`) VALUES
+(4, 'TRX1100', 1, NULL, '2026-02-26 17:53:32', 1.00, 8000.00, 'selesai', NULL, NULL),
+(6, 'TRX59D0444D59', 1, NULL, '2026-02-26 21:25:44', 2.00, 90000.00, 'selesai', NULL, NULL),
+(7, 'TRXB86B974FA2', 1, NULL, '2026-02-27 17:38:08', 1.00, 300.00, 'selesai', 'uploads/e7596026ad414b5a8c1171a901c1bac0.jpg', 0.79);
 
 -- --------------------------------------------------------
 
@@ -227,7 +232,7 @@ CREATE TABLE `users` (
 
 INSERT INTO `users` (`id`, `nama`, `username`, `email`, `password`, `role`, `is_active`, `last_login`, `created_at`, `updated_at`, `status`) VALUES
 (1, 'admin', 'admin', 'admin@gmail.com', 'scrypt:32768:8:1$r1Nnjco832lyV8uH$902daa2c9a00e5951f1711a3af74bd48ea2af3cf3c77d3748d8dc4b6925ce08642ece078d4bf6306311decb150cef9ab25ed672fba03046b10efa300ae4e1c96', 'admin', 1, NULL, '2026-02-26 09:29:52', '2026-02-26 09:29:52', 'approved'),
-(2, 'Muhammad Azka', 'azka', NULL, 'scrypt:32768:8:1$ILVDnwekkAUPiYdz$493e476f7d1599d8bc8bdc8c3a5fa6dfbbc6a9f7fdce94b2bd4d42823a1b77f0a6212046cbed983fd76b4986c234535f33bc9241960df0106a30b253125b3e85', 'nasabah', 1, NULL, '2026-02-26 09:32:30', '2026-02-26 09:39:48', 'approved');
+(2, 'Muhammad Azka', 'azka', 'm.azkanabhan07@gmail.com', 'scrypt:32768:8:1$ILVDnwekkAUPiYdz$493e476f7d1599d8bc8bdc8c3a5fa6dfbbc6a9f7fdce94b2bd4d42823a1b77f0a6212046cbed983fd76b4986c234535f33bc9241960df0106a30b253125b3e85', 'nasabah', 1, NULL, '2026-02-26 09:32:30', '2026-02-26 16:02:09', 'approved');
 
 --
 -- Indexes for dumped tables
@@ -303,7 +308,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT untuk tabel `detail_setor`
 --
 ALTER TABLE `detail_setor`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT untuk tabel `kategori_sampah`
@@ -339,7 +344,7 @@ ALTER TABLE `penarikan`
 -- AUTO_INCREMENT untuk tabel `transaksi_setor`
 --
 ALTER TABLE `transaksi_setor`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT untuk tabel `users`
